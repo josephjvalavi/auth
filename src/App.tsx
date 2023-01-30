@@ -1,58 +1,55 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
-    </div>
-  );
+import {
+  useMsal,
+  AuthenticatedTemplate,
+  UnauthenticatedTemplate,
+} from "@azure/msal-react";
+function signInClickHandler(instance:any) {
+  instance.loginRedirect();
+}
+function signOutClickHandler(instance:any) {
+  const logoutRequest = {
+    account: instance.getAccountByHomeId(null),
+    postLogoutRedirectUri: "http://localhost:3000",
+  };
+  instance.logoutRedirect(logoutRequest);
 }
 
+// SignInButton Component returns a button that invokes a popup login when clicked
+function SignInButton() {
+  // useMsal hook will return the PublicClientApplication instance you provided to MsalProvider
+  const { instance } = useMsal();
+
+  return <button onClick={() => signInClickHandler(instance)}>Sign In</button>;
+}
+function SignOutButton(){
+  const{instance}=useMsal()
+  return <button onClick={() => signOutClickHandler(instance)}>SignOut</button>;
+
+
+}
+
+function WelcomeUser() {
+  const { accounts } = useMsal();
+  var username:string = accounts[0].username;
+  let name=username.split(".")
+
+  return <p>Welcome, {name[0]}</p>;
+}
+
+// Remember that MsalProvider must be rendered somewhere higher up in the component tree
+function App() {
+  return (
+    <>
+      <AuthenticatedTemplate>
+        <p>This will only render if a user is signed-in.</p>
+        <WelcomeUser />
+        <SignOutButton />
+      </AuthenticatedTemplate>
+      <UnauthenticatedTemplate>
+        <p>This will only render if a user is not signed-in.</p>
+        <SignInButton />
+      </UnauthenticatedTemplate>
+    </>
+  );
+}
 export default App;
